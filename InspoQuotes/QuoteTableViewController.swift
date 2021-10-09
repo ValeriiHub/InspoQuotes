@@ -37,7 +37,7 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
         SKPaymentQueue.default().add(self)
         
         if isPurchased() {
-            showPremiumquotes()
+            showPremiumQuotes()
         }
     }
 
@@ -99,11 +99,9 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
         for transaction in transactions {
             if transaction.transactionState == .purchased {
                 // покупка удалась
-                showPremiumquotes()
-                
-                UserDefaults.standard.set(true, forKey: productID)
-                
-                SKPaymentQueue.default().finishTransaction(transaction)
+                showPremiumQuotes()
+                                
+                SKPaymentQueue.default().finishTransaction(transaction) // завершаем транзакцию
                 
             } else if transaction.transactionState == .failed {
                 // покупка не удалась
@@ -112,13 +110,25 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
                     print("Transaction faild due to error: \(error.localizedDescription)")
                 }
                 
-                SKPaymentQueue.default().finishTransaction(transaction)
+                SKPaymentQueue.default().finishTransaction(transaction) // завершаем транзакцию
+            } else if transaction.transactionState == .restored {
+                
+                showPremiumQuotes()
+                
+                print("Transaction restored")
+                
+                navigationItem.setRightBarButton(nil, animated: true)  // убираем кнопку с панели навигации
+                
+                SKPaymentQueue.default().finishTransaction(transaction) // завершаем транзакцию
             }
         }
     }
     
-    func showPremiumquotes() {
-        quotesToShow.append(contentsOf: premiumQuotes)
+    func showPremiumQuotes() {
+        
+        UserDefaults.standard.set(true, forKey: productID)
+        
+        quotesToShow.append(contentsOf: premiumQuotes)  // добавляем премиум советы к общим советам
         tableView.reloadData()
     }
     
@@ -135,7 +145,7 @@ class QuoteTableViewController: UITableViewController, SKPaymentTransactionObser
     }
     
     @IBAction func restorePressed(_ sender: UIBarButtonItem) {
-        
+        SKPaymentQueue.default().restoreCompletedTransactions()  // запрашивает была ли совершена покупка и возвращает уведомление в метод paymentQueue
     }
 }
 
